@@ -57,6 +57,9 @@ def main():
     print(unified_transactions.columns)
     clean_transactions = transform_transactions(unified_transactions)
 
+    print(len(clean_patients))
+    print(len(clean_transactions))
+
     print("\n============================")
     print("📐 Phase 4: Dimensional Modeling")
     print("============================")

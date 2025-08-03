@@ -20,11 +20,36 @@ def create_dim_providers(transactions_df):
     dim_providers["provider_sk"] = dim_providers.index + 1
     return dim_providers[["provider_sk", "ProviderID"]]
 
-def create_dim_procedures(transactions_df):
-    dim_procedures = transactions_df[["ProcedureCode"]].drop_duplicates().copy()
-    dim_procedures = dim_procedures.reset_index(drop=True)
-    dim_procedures["procedure_sk"] = dim_procedures.index + 1
-    return dim_procedures[["procedure_sk", "ProcedureCode"]]
+# def create_dim_procedures(transactions_df):
+#     dim_procedures = transactions_df[["ProcedureCode"]].drop_duplicates().copy()
+#     dim_procedures = dim_procedures.reset_index(drop=True)
+#     dim_procedures["procedure_sk"] = dim_procedures.index + 1
+#     return dim_procedures[["procedure_sk", "ProcedureCode"]]
+
+def create_dim_procedures(transactions_df: pd.DataFrame) -> pd.DataFrame:
+    dim = transactions_df[["ProcedureCode"]].drop_duplicates()
+    dim["ProcedureCode"] = dim["ProcedureCode"].astype(str).str.strip()
+    dim["procedure_sk"] = dim.reset_index(drop=True).index + 1
+
+    descriptions_df = pd.read_csv("Data/cptcodes/cptcodes.csv")
+    descriptions_df = descriptions_df.rename(columns={
+        "CPT Codes": "ProcedureCode",
+        "Procedure Code Descriptions": "ProcedureDescription",
+        "Procedure Code":"pc"
+    })
+    descriptions_df["ProcedureCode"] = descriptions_df["ProcedureCode"].astype(str).str.strip()
+    print(descriptions_df["ProcedureCode"])
+    print(dim)
+
+    dim = dim.merge(descriptions_df[["ProcedureCode", "ProcedureDescription"]], on="ProcedureCode", how="left")
+
+    # Fallback for missing descriptions
+    dim["ProcedureDescription"] = dim["ProcedureDescription"].fillna("Unknown Procedure")
+
+    return dim
+
+
+    
 
 def create_dim_date(df, date_columns):
     dates = pd.Series()
