@@ -12,6 +12,12 @@ def load_to_bigquery(df: pd.DataFrame, table_name: str, partition_field: str = N
     if partition_field and partition_field in df.columns:
         df[partition_field] = pd.to_datetime(df[partition_field], errors='coerce')
 
+    df = df.copy()
+    for col in df.select_dtypes(include="object").columns:
+        df[col] = df[col].astype(str).fillna("")
+
+    for col in df.select_dtypes(include="bool").columns:
+        df[col] = df[col].astype(bool)
     
     try:
         client = bigquery.Client()

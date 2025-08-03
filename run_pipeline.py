@@ -72,6 +72,7 @@ def main():
     fact_transactions = create_fact_transactions(
         clean_transactions, dim_patients, dim_providers, dim_procedures, dim_date
     )
+    print(fact_transactions.columns)
 
     print("\n📑 Creating fact_claims...")
     fact_claims = create_fact_claims(claims_df, dim_patients, dim_date)
@@ -95,9 +96,9 @@ def main():
     load_to_bigquery(dim_providers, "dim_providers")
     load_to_bigquery(dim_procedures, "dim_procedures")
     load_to_bigquery(dim_date, "dim_date", partition_field="date")
-    print(fact_transactions.columns)
+    print(fact_transactions["ServiceDate"])
     print(fact_transactions.head(1))
-    load_to_bigquery(fact_transactions, "fact_transactions",partition_field="ServiceDate")
+    load_to_bigquery(fact_transactions, "fact_transactions",partition_field="ServiceDate",cluster_fields=["ClaimID"])
     load_to_bigquery(fact_claims, "fact_claims", partition_field="ServiceDate", cluster_fields=["ClaimID"])
 
     print("\n✅ Pipeline completed successfully!")

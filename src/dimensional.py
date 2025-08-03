@@ -47,6 +47,38 @@ def create_dim_date(df, date_columns):
 def create_fact_transactions(transactions_df, dim_patients, dim_providers, dim_procedures, dim_date):
     fact = transactions_df.copy()
 
+    # Merge with dim_patients to get patient_sk
+    fact = fact.merge(dim_patients[["unified_patient_id", "patient_sk"]], on="unified_patient_id", how="left")
+
+    # Merge with dim_providers to get provider_sk
+    fact = fact.merge(dim_providers, on="ProviderID", how="left")
+
+    # Merge with dim_procedures to get procedure_sk
+    fact = fact.merge(dim_procedures, on="ProcedureCode", how="left")
+
+    # Merge with dim_date to get service_date_sk
+    dim_date_renamed = dim_date.rename(columns={"date": "ServiceDate"})
+    fact = fact.merge(dim_date_renamed[["ServiceDate", "date_sk"]], on="ServiceDate", how="left")
+    fact = fact.rename(columns={"date_sk": "service_date_sk"})
+
+    # Final selected columns (including surrogate keys and actual ServiceDate)
+    return fact[[
+        "TransactionID",
+        "patient_sk",
+        "provider_sk",
+        "procedure_sk",
+        "service_date_sk",
+        "ServiceDate",            # ✅ Include actual date
+        "Amount",
+        "AmountType",
+        "PaidAmount",
+        "ClaimID",
+        "PayorID",
+        "VisitType"
+    ]]
+
+    fact = transactions_df.copy()
+
     fact = fact.merge(dim_patients[["unified_patient_id", "patient_sk"]], on="unified_patient_id", how="left")
     fact = fact.merge(dim_providers, on="ProviderID", how="left")
     fact = fact.merge(dim_procedures, on="ProcedureCode", how="left")
@@ -54,10 +86,15 @@ def create_fact_transactions(transactions_df, dim_patients, dim_providers, dim_p
     dim_date_renamed = dim_date.rename(columns={"date": "ServiceDate"})
     
     
-    fact = fact.merge(dim_date_renamed[["ServiceDate", "date_sk"]], on="ServiceDate", how="left")
-    fact = fact.rename(columns={"date_sk": "service_date_sk"})
+      # ✅ Step 3: Add ServiceDate back using the surrogate key
+    fact = fact.merge(dim_date[["date_sk", "date"]], left_on="service_date_sk", right_on="date_sk", how="left")
+    fact = fact.rename(columns={"date": "ServiceDate"})
+
+    # Optional: Clean up
+    fact.drop(columns=["date_sk"], inplace=True)
 
     return fact[["TransactionID", "patient_sk", "provider_sk", "procedure_sk", "service_date_sk",
+                 "ServiceDate",  # ✅ Now included in output
                  "Amount", "AmountType", "PaidAmount", "ClaimID", "PayorID", "VisitType"]]
 
 def create_fact_claims(claims_df, dim_patients, dim_date):
