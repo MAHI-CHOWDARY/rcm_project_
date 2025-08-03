@@ -158,9 +158,9 @@ def validate_referential_integrity(fact_df, dim_patients, dim_providers, dim_pro
 
     checks = [
         ("patient_sk", dim_patients, "patient_sk"),
-        ("provider_id", dim_providers, "provider_id") if dim_providers is not None else None,
-        ("procedure_code", dim_procedures, "procedure_code") if dim_procedures is not None else None,
-        ("transaction_date", dim_date, "date") if dim_date is not None else None
+        ("provider_sk", dim_providers, "provider_sk") if dim_providers is not None else None,
+        ("procedure_sk", dim_procedures, "procedure_sk") if dim_procedures is not None else None,
+        ("service_date_sk", dim_date, "date_sk") if dim_date is not None else None
     ]
 
     for check in checks:
@@ -182,30 +182,7 @@ def validate_referential_integrity(fact_df, dim_patients, dim_providers, dim_pro
 
     print("✅ Referential integrity check completed.")
 
-    print("🛠️ Validating data integrity...")
-
-    checks = [
-        ("patient_sk", dim_patients, "patient_sk"),
-        ("provider_id", dim_providers, "provider_id"),
-        ("procedure_code", dim_procedures, "procedure_code"),
-        ("transaction_date", dim_date, "date")
-    ]
-
-    for fact_key, dim_df, dim_key in checks:
-        if fact_key not in fact_df.columns:
-            print(f"❌ Column {fact_key} not found in fact table.")
-            continue
-        if dim_key not in dim_df.columns:
-            print(f"❌ Column {dim_key} not found in dimension table.")
-            continue
-
-        # Create a boolean mask that matches the index of fact_df
-        mask = ~fact_df[fact_key].astype(str).isin(dim_df[dim_key].astype(str))
-        missing = fact_df[mask]
-
-        print(f"🔎 {fact_key} ➝ {dim_key} missing: {len(missing)}")
-
-    print("✅ Referential integrity check completed.")
+   
 
 
 def validate_business_rules(df):
