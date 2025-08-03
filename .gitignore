@@ -1,0 +1,25 @@
+# Bytecode
+__pycache__/
+*.py[cod]
+
+# Jupyter checkpoints
+*.ipynb_checkpoints
+
+# Environments
+venv/
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Pytest cache
+.cache/
+.pytest_cache/
+
+# Google credentials
+*.json
